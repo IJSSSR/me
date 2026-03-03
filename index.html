@@ -17,6 +17,8 @@
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
         }
         h2 {
             text-align: center;
@@ -88,6 +90,136 @@
             color: #666;
             font-size: 12px;
         }
+        
+        /* Popup Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 20% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            animation: slideDown 0.4s ease-out;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease-out 0.2s both;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        .success-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+        
+        .modal h2 {
+            color: #333;
+            margin-bottom: 10px;
+            animation: fadeInUp 0.5s ease-out 0.3s both;
+        }
+        
+        .modal p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+            animation: fadeInUp 0.5s ease-out 0.4s both;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: auto;
+            min-width: 150px;
+            animation: fadeInUp 0.5s ease-out 0.5s both;
+        }
+        
+        .modal button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        /* Close button */
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -124,14 +256,33 @@
         <div class="footer">Data will be saved to Google Sheets</div>
     </div>
 
+    <!-- Thank You Popup Modal -->
+    <div id="thankYouModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+            </div>
+            
+            <h2>Thank You! 🙏</h2>
+            <p>Your form has been submitted successfully.<br>We'll get back to you soon.</p>
+            
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
     <script>
-        // 🔴 YAHAN APNA URL DAALO - maine aapka diya hua URL daal diya hai
+        // 🔴 YAHAN APNA URL DAALO
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxq2pbwF1g_iXUp4h48K9xdP-BeKDNvYLIKOADoIvBDSJGXcp_A49KnHR61FuUDo90t/exec';
         
         const form = document.getElementById('contactForm');
         const submitBtn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
         const statusDiv = document.getElementById('status');
+        const modal = document.getElementById('thankYouModal');
 
         // Form submit handler
         form.addEventListener('submit', async function(e) {
@@ -166,8 +317,17 @@
                     const result = await response.json();
                     console.log('Success:', result);
                     
+                    // Status message show karo
                     showStatus('✅ Success! Data saved to Google Sheet!', 'success');
+                    
+                    // Form reset karo
                     form.reset();
+                    
+                    // ⭐ Thank You Popup show karo
+                    setTimeout(() => {
+                        showPopup();
+                    }, 500);
+                    
                 } else {
                     throw new Error('Server response: ' + response.status);
                 }
@@ -179,6 +339,30 @@
                 setLoading(false);
             }
         });
+
+        // Popup show karne ka function
+        function showPopup() {
+            modal.style.display = 'block';
+            
+            // Agar user escape button dabaye to popup band ho
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        }
+
+        // Popup band karne ka function
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Modal ke bahar click karne par band ho
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
 
         // Form validation function
         function validateForm() {
